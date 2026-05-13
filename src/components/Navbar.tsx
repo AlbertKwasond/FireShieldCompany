@@ -62,12 +62,12 @@ export const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown (simplified for now) */}
+      {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div style={{ background: 'var(--dark-gray)', padding: 'var(--spacing-md)' }}>
+        <div className={styles['mobile-menu-dropdown']}>
           <nav className="flex flex-col gap-md">
             {navLinks.map((link) => (
-              <Link key={link.name} href={link.path} style={{ color: 'var(--white)', padding: '0.5rem 0' }}>
+              <Link key={link.name} href={link.path} className={styles['mobile-nav-link']}>
                 {link.name}
               </Link>
             ))}
