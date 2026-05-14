@@ -24,13 +24,13 @@ export default function IndustriesPage() {
     {
       title: 'Manufacturing',
       icon: <Factory size={24} />,
-      image: '/images/manufacturing_fire_safety.png',
+      image: '/images/manufacturing.jpg',
       description: 'Robust fire suppression and security systems designed for harsh industrial environments, ensuring continuous operation.',
     },
     {
       title: 'Banking & Financial',
       icon: <Landmark size={24} />,
-      image: '/images/security_monitoring_room.png',
+      image: '/images/banking_financial.jpg',
       description: 'Advanced access control, CCTV, and early-warning fire detection systems protecting sensitive assets.',
     },
     {
@@ -66,7 +66,7 @@ export default function IndustriesPage() {
     {
       title: 'High-Risk Facilities',
       icon: <Shield size={24} />,
-      image: '/images/oil_gas_plant.png',
+      image: '/images/high_risk_facilities.jpg',
       description: 'Custom-engineered solutions for oil, gas, and chemical sites where absolute reliability is non-negotiable.',
     }
   ];
