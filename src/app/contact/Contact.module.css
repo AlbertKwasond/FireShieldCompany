@@ -1,0 +1,143 @@
+.main {
+  background-color: var(--white);
+  min-height: 100vh;
+}
+
+.hero {
+  padding: var(--spacing-xxl) 0 var(--spacing-xl);
+  text-align: center;
+  position: relative;
+  background-color: var(--white);
+}
+
+.hero h1 {
+  color: var(--black-bg);
+}
+
+.hero p {
+  color: var(--charcoal);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section {
+  padding: var(--spacing-xl) 0 var(--spacing-xxl);
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (min-width: 1024px) {
+  .contact-grid {
+    grid-template-columns: 1fr 1.5fr;
+  }
+}
+
+.info-card {
+  background: var(--white);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  height: 100%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.info-item {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(230, 57, 70, 0.1);
+  color: var(--fire-red);
+  flex-shrink: 0;
+}
+
+.info-content h3 {
+  color: var(--black-bg);
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.info-content p {
+  color: var(--charcoal);
+  font-size: 0.95rem;
+}
+
+/* Form Styles */
+.form-card {
+  background: var(--white);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  color: var(--black-bg);
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: #f8f8f8;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  color: var(--black-bg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--fire-red);
+  box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+  }
+}

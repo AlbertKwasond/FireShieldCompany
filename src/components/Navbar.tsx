@@ -25,7 +25,7 @@ export const Navbar = () => {
     { name: 'Services', path: '/services' },
     { name: 'Projects', path: '/projects' },
     { name: 'Industries', path: '/industries' },
-    { name: 'Support', path: '/maintenance' },
+    { name: 'Support', path: '/support' },
   ];
 
   return (
