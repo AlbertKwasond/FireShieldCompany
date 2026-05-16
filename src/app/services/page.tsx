@@ -55,7 +55,9 @@ export default function Services() {
                 src="/images/services/fire-safety.png" 
                 alt="Professional industrial fire suppression system"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles['service-image']}
+                unoptimized
               />
             </div>
           </div>
@@ -89,7 +91,9 @@ export default function Services() {
                 src="/images/services/cctv-access.png" 
                 alt="Professional enterprise CCTV installation"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles['service-image']}
+                unoptimized
               />
             </div>
           </div>
@@ -123,6 +127,7 @@ export default function Services() {
                 src="https://images.unsplash.com/photo-1581092335397-9583eb92d232?q=80&w=1200&auto=format&fit=crop" 
                 alt="Industrial electrical panels and power systems"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles['service-image']}
               />
             </div>
@@ -157,6 +162,7 @@ export default function Services() {
                 src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop" 
                 alt="Enterprise data center infrastructure"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles['service-image']}
               />
             </div>

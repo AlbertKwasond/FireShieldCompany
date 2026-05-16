@@ -33,7 +33,7 @@ export default function Contact() {
                 </div>
                 <div className={styles['info-content']}>
                   <h3>Our Office</h3>
-                  <p>123 Engineering Way<br />Accra, Ghana</p>
+                  <p>54 Faanofa Road, Kokomlemle<br />Accra, Ghana</p>
                 </div>
               </div>
 
@@ -43,7 +43,7 @@ export default function Contact() {
                 </div>
                 <div className={styles['info-content']}>
                   <h3>Phone</h3>
-                  <p>+233 (0) 302 123 456<br />+233 (0) 244 123 456</p>
+                  <p>+233 544015490<br />+233 501676271</p>
                 </div>
               </div>
 
@@ -53,7 +53,7 @@ export default function Contact() {
                 </div>
                 <div className={styles['info-content']}>
                   <h3>Email</h3>
-                  <p>info@fireshieldgh.com<br />support@fireshieldgh.com</p>
+                  <p>info@fireshieldghana.com<br />support@fireshieldghana.com</p>
                 </div>
               </div>
 

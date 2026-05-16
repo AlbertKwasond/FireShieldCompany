@@ -35,8 +35,8 @@ export const Navbar = () => {
           <Image 
             src="/logo.png" 
             alt="Fire Shield Logo" 
-            width={220} 
-            height={60} 
+            width={260} 
+            height={70} 
             style={{ objectFit: 'contain' }} 
             priority
             unoptimized

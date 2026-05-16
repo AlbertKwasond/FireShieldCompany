@@ -18,8 +18,8 @@ export const Footer = () => {
               <Image 
                 src="/logo.png" 
                 alt="Fire Shield Logo" 
-                width={220} 
-                height={60} 
+                width={260} 
+                height={70} 
                 style={{ objectFit: 'contain' }} 
                 unoptimized
               />
@@ -64,11 +64,11 @@ export const Footer = () => {
             <div className={styles['contact-info']}>
               <div className={styles['contact-item']}>
                 <MapPin size={20} className={styles['contact-icon']} />
-                <span>123 Industrial Area, Spintex Road<br/>Accra, Ghana</span>
+                <span>54 Faanofa Road, Kokomlemle<br/>Accra, Ghana</span>
               </div>
               <div className={styles['contact-item']}>
                 <Phone size={20} className={styles['contact-icon']} />
-                <span>+233 24 000 0000<br/>+233 30 000 0000 (24/7)</span>
+                <span>+233 544015490<br/>+233 501676271</span>
               </div>
               <div className={styles['contact-item']}>
                 <Mail size={20} className={styles['contact-icon']} />

@@ -27,16 +27,16 @@
 }
 
 .section-dark {
-  background-color: var(--white);
-  color: var(--black-bg);
+  background-color: var(--dark-gray);
+  color: var(--white);
 }
 
 .section-dark h2, .section-dark h3 {
-  color: var(--black-bg);
+  color: var(--white);
 }
 
 .section-dark p {
-  color: var(--charcoal);
+  color: var(--metallic);
 }
 
 .service-block {
@@ -80,7 +80,7 @@
 }
 
 .section-dark .service-content p {
-  color: var(--charcoal);
+  color: var(--metallic);
 }
 
 .feature-list {
@@ -99,7 +99,7 @@
 }
 
 .section-dark .feature-list li {
-  color: var(--charcoal);
+  color: var(--metallic);
 }
 
 .feature-icon {
