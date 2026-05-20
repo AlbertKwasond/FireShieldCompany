@@ -124,11 +124,12 @@ export default function Services() {
             </div>
             <div className={styles['service-image-wrapper']}>
               <Image 
-                src="https://images.unsplash.com/photo-1581092335397-9583eb92d232?q=80&w=1200&auto=format&fit=crop" 
+                src="/images/services/electrical-systems.png" 
                 alt="Industrial electrical panels and power systems"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles['service-image']}
+                unoptimized
               />
             </div>
           </div>
@@ -159,11 +160,12 @@ export default function Services() {
             </div>
             <div className={styles['service-image-wrapper']}>
               <Image 
-                src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop" 
+                src="/images/services/data-center.png" 
                 alt="Enterprise data center infrastructure"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles['service-image']}
+                unoptimized
               />
             </div>
           </div>

@@ -35,7 +35,7 @@ const projects = [
     description: 'Installation of industrial-grade fire hydrants, sprinkler systems, and advanced smoke detection arrays for a 50,000 sq ft manufacturing facility.',
     location: 'Tema, Ghana',
     date: '2023',
-    image: 'https://images.unsplash.com/photo-1541888059882-62cb6eeb415a?q=80&w=2070&auto=format&fit=crop',
+    image: '/images/projects/manufacturing-plant.png',
   },
   {
     id: 4,
@@ -62,7 +62,7 @@ const projects = [
     description: 'State-of-the-art addressable fire alarm systems and rapid-response suppression units installed for a luxury high-rise development.',
     location: 'Cantonments, Accra',
     date: '2023',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
+    image: '/images/projects/luxury-residential.png',
   }
 ];
 

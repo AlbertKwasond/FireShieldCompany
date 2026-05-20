@@ -23,49 +23,49 @@ export default function IndustriesPage() {
     {
       title: 'Manufacturing',
       icon: <Factory size={24} />,
-      image: '/images/manufacturing.jpg',
+      image: '/images/industries/manufacturing.jpg',
       description: 'Robust fire suppression and security systems designed for harsh industrial environments, ensuring continuous operation.',
     },
     {
       title: 'Banking & Financial',
       icon: <Landmark size={24} />,
-      image: '/images/banking_financial.jpg',
+      image: '/images/industries/banking_financial.jpg',
       description: 'Advanced access control, CCTV, and early-warning fire detection systems protecting sensitive assets.',
     },
     {
       title: 'Government Offices',
       icon: <Building2 size={24} />,
-      image: '/images/government_access_control.jpg',
+      image: '/images/industries/government_access_control.jpg',
       description: 'Comprehensive life safety and security infrastructure for public sector buildings and headquarters.',
     },
     {
       title: 'Data Centers',
       icon: <Server size={24} />,
-      image: '/images/data_center_servers.jpg',
+      image: '/images/industries/data_center_servers.jpg',
       description: 'Mission-critical cooling, clean agent fire suppression, and environmental monitoring for zero-downtime environments.',
     },
     {
       title: 'Healthcare',
       icon: <Hospital size={24} />,
-      image: '/images/healthcare_safety.jpg',
+      image: '/images/industries/healthcare_safety.jpg',
       description: 'Specialized safety systems and secure access controls that protect patients, staff, and medical equipment.',
     },
     {
       title: 'Education',
       icon: <GraduationCap size={24} />,
-      image: '/images/fire_alarm_edu.jpg',
+      image: '/images/industries/fire_alarm_edu.jpg',
       description: 'Campus-wide security and fire alarm integration tailored to protect students and educational facilities.',
     },
     {
       title: 'Aviation & Transport',
       icon: <Plane size={24} />,
-      image: '/images/aviation_security.jpg',
+      image: '/images/industries/aviation_security.jpg',
       description: 'Large-scale fire engineering and surveillance for transit hubs, airport hangars, and logistics centers.',
     },
     {
       title: 'High-Risk Facilities',
       icon: <Shield size={24} />,
-      image: '/images/high_risk_facilities.jpg',
+      image: '/images/industries/high_risk_facilities.png',
       description: 'Custom-engineered solutions for oil, gas, and chemical sites where absolute reliability is non-negotiable.',
     }
   ];
