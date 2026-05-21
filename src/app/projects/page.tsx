@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
-import { CheckCircle, MapPin, Calendar, ArrowRight } from 'lucide-react';
+import { MapPin, Calendar, ArrowRight } from 'lucide-react';
 import styles from './Projects.module.css';
 
 export const metadata = {
@@ -160,7 +160,7 @@ export default function Projects() {
         <div className="container text-center">
           <h2 className="heading-md" style={{ color: 'var(--black-bg)', marginBottom: '1rem' }}>Have a Project in Mind?</h2>
           <p style={{ color: 'var(--charcoal)', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem auto' }}>
-            Let's discuss how our engineering expertise can bring your vision to life safely and securely.
+            Let&apos;s discuss how our engineering expertise can bring your vision to life safely and securely.
           </p>
           <Link href="/contact">
             <Button>Discuss Your Project <ArrowRight size={18} /></Button>

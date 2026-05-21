@@ -41,7 +41,7 @@ export const Footer = () => {
               <li><Link href="/about" className={styles['footer-link']}>About Us</Link></li>
               <li><Link href="/projects" className={styles['footer-link']}>Projects & Clients</Link></li>
               <li><Link href="/industries" className={styles['footer-link']}>Industries Served</Link></li>
-              <li><Link href="/maintenance" className={styles['footer-link']}>Maintenance & Support</Link></li>
+              <li><Link href="/support" className={styles['footer-link']}>Maintenance & Support</Link></li>
               <li><Link href="/contact" className={styles['footer-link']}>Contact Us</Link></li>
             </ul>
           </div>

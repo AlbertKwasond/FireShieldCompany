@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings, Wrench, PhoneCall, ShieldAlert, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Settings, PhoneCall, ShieldAlert, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import Link from 'next/link';
 import styles from './Support.module.css';

@@ -93,7 +93,7 @@ export default function About() {
               </div>
               <h3 style={{ color: 'var(--white)', fontSize: '1.5rem', marginBottom: '1rem' }}>Our Mission</h3>
               <p>
-                To provide innovative, reliable, and comprehensive engineering solutions in fire safety, security, and electrical infrastructure, ensuring the total protection and continuous operation of our clients' critical assets.
+                To provide innovative, reliable, and comprehensive engineering solutions in fire safety, security, and electrical infrastructure, ensuring the total protection and continuous operation of our clients&apos; critical assets.
               </p>
             </div>
             <div className={styles['glass-card']}>
