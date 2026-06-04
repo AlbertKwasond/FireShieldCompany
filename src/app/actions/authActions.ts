@@ -5,12 +5,44 @@ import bcrypt from 'bcryptjs';
 import { createSession, deleteSession, encrypt, decrypt } from '@/lib/session';
 import { encrypt as encryptData, decrypt as decryptData } from '@/lib/encryption';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { generateSecret, generateURI, verifySync } from 'otplib';
 import QRCode from 'qrcode';
-import { getSecuritySettings, getSettings } from './settingsActions';
+import { getPublicSettings } from './settingsActions';
 import { logActivity } from '@/lib/logger';
+import { checkLoginRateLimit } from '@/lib/ratelimit';
+
+// ─── Internal helpers (no session required) ───────────────────────────────────
+
+/**
+ * SECURITY: This is an internal-only helper for reading security settings
+ * during the login flow — before a session exists. It intentionally has no
+ * session guard. Do NOT export this function.
+ */
+async function getSecuritySettingsInternal() {
+  try {
+    return await prisma.securitySettings.findUnique({ where: { id: 'singleton' } });
+  } catch {
+    return null;
+  }
+}
+
+// ─── Actions ─────────────────────────────────────────────────────────────────
 
 export async function loginUser(formData: FormData) {
+  // FIX #1: Rate limit login attempts — max 5 per IP per 15 minutes.
+  const headersList = await headers();
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0].trim() ??
+              headersList.get('x-real-ip') ??
+              'unknown';
+  const rateLimit = checkLoginRateLimit(ip);
+  if (!rateLimit.allowed) {
+    const retryAfterMins = Math.ceil((rateLimit.resetAt - Date.now()) / 60000);
+    return {
+      error: `Too many login attempts. Please try again in ${retryAfterMins} minute${retryAfterMins !== 1 ? 's' : ''}.`,
+    };
+  }
+
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
@@ -33,28 +65,40 @@ export async function loginUser(formData: FormData) {
       return { error: 'Invalid credentials.' };
     }
 
-    const securitySettings = await getSecuritySettings();
+    // FIX #4: Use the internal variant that does not require a valid session.
+    const securitySettings = await getSecuritySettingsInternal();
     const is2FAEnabledGlobally = securitySettings?.enable2FA;
 
     if (is2FAEnabledGlobally) {
       if (user.twoFactorSecretEncrypted) {
-        // User has 2FA set up, require code
+        // User has 2FA set up — issue a short-lived pending token, require code next.
         const tempToken = await encrypt({
           userId: user.id,
           email: user.email,
           role: user.role,
           pending2FA: true,
-        }, '10m'); // 10 minutes expiry
+          // FIX #6: tempSecret is NEVER stored in the JWT — it lives only in the DB.
+        }, '10m');
 
         return { requires2FA: true, tempToken };
       } else {
-        // User needs to set up 2FA
+        // User needs to set up 2FA.
         const secret = generateSecret();
-        const generalSettings = await getSettings();
+        const generalSettings = await getPublicSettings();
         const appName = generalSettings?.siteName || 'Fire Shield';
         const otpauth = generateURI({ issuer: appName, label: user.email, secret });
         const qrCode = await QRCode.toDataURL(otpauth);
-        
+
+        // FIX #6: Store the pending secret in the DB with a 10-minute expiry.
+        // It is NEVER placed inside the JWT where a client could decode it.
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            twoFactorPendingSecret: secret,
+            twoFactorPendingExpiry: new Date(Date.now() + 10 * 60 * 1000),
+          },
+        });
+
         const tempToken = await encrypt({
           userId: user.id,
           email: user.email,
@@ -62,11 +106,11 @@ export async function loginUser(formData: FormData) {
           pending2FA: true,
         }, '10m');
 
-        return { setup2FA: true, tempSecret: secret, qrCode, tempToken };
+        return { setup2FA: true, qrCode, tempToken };
       }
     }
 
-    // No 2FA required
+    // No 2FA required — create session immediately.
     await createSession({
       userId: user.id,
       email: user.email,
@@ -138,40 +182,73 @@ export async function verify2FALogin(tempToken: string, code: string) {
   }
 }
 
-export async function setup2FA(tempToken: string, tempSecret: string, code: string) {
+export async function setup2FA(tempToken: string, code: string) {
   try {
     const payload = await decrypt(tempToken);
     if (!payload || !payload.pending2FA) {
       return { error: 'Invalid or expired setup session.' };
     }
 
-    const result = verifySync({ token: code, secret: tempSecret });
+    // FIX #6: Retrieve the pending secret from the DB (not from the JWT).
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        twoFactorPendingSecret: true,
+        twoFactorPendingExpiry: true,
+      },
+    });
+
+    if (!user) {
+      return { error: 'User not found.' };
+    }
+
+    if (!user.twoFactorPendingSecret || !user.twoFactorPendingExpiry) {
+      return { error: 'No pending 2FA setup found. Please log in again.' };
+    }
+
+    if (user.twoFactorPendingExpiry < new Date()) {
+      // Clean up the expired secret
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { twoFactorPendingSecret: null, twoFactorPendingExpiry: null },
+      });
+      return { error: '2FA setup session has expired. Please log in again.' };
+    }
+
+    const result = verifySync({ token: code, secret: user.twoFactorPendingSecret });
 
     if (!result.valid) {
       return { error: 'Invalid verification code. Please try again.' };
     }
 
-    const encryptedSecret = encryptData(tempSecret);
-    
-    // Save to user
+    const encryptedSecret = encryptData(user.twoFactorPendingSecret);
+
+    // Save the confirmed secret and clear the temporary pending fields
     await prisma.user.update({
-      where: { id: payload.userId },
-      data: { twoFactorSecretEncrypted: encryptedSecret },
+      where: { id: user.id },
+      data: {
+        twoFactorSecretEncrypted: encryptedSecret,
+        twoFactorPendingSecret: null,
+        twoFactorPendingExpiry: null,
+      },
     });
 
     // Create the real session
     await createSession({
-      userId: payload.userId,
-      email: payload.email,
-      role: payload.role,
+      userId: user.id,
+      email: user.email,
+      role: user.role,
     });
 
     await logActivity({
       action: 'SETUP_2FA',
       entityType: 'Auth',
-      entityId: payload.userId,
-      entityName: payload.email,
-      userId: payload.userId,
+      entityId: user.id,
+      entityName: user.email,
+      userId: user.id,
     });
 
     return { success: true };

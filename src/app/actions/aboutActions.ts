@@ -2,42 +2,12 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { verifySession } from '@/lib/session';
+import { processImageUpload } from '@/lib/upload';
 
 const SINGLETON_ID = 'singleton';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
-/**
- * If a real image file was uploaded, save it and return its public path.
- * If no file was uploaded, fall back to the hidden `imagePath` field (existing path).
- * Never returns an empty string — returns null if truly nothing is available.
- */
-async function processImageUpload(formData: FormData, fileKey: string, pathKey: string): Promise<string | null> {
-  const imageFile = formData.get(fileKey) as File | null;
-
-  if (imageFile && imageFile.size > 0) {
-    const bytes = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const filename = `${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '-')}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'images', 'about');
-
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    await fs.writeFile(path.join(uploadDir, filename), buffer);
-    return `/images/about/${filename}`;
-  }
-
-  // Fall back to whatever path was already stored (sent as hidden field)
-  const existingPath = (formData.get(pathKey) as string | null)?.trim() ?? '';
-  return existingPath || null;
-}
 
 // ─── Read ────────────────────────────────────────────────────────────────────
 
@@ -88,6 +58,9 @@ export async function getAboutContent() {
 // ─── Update ──────────────────────────────────────────────────────────────────
 
 export async function updateAboutContent(formData: FormData) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+
   try {
     const heroTitle = (formData.get('heroTitle') as string) || '';
     const heroDescription = (formData.get('heroDescription') as string) || '';
@@ -108,13 +81,13 @@ export async function updateAboutContent(formData: FormData) {
     } catch {}
 
     for (let i = 0; i < leadershipParsed.length; i++) {
-      const leaderImagePath = await processImageUpload(formData, `leadershipImageFile_${i}`, `leadershipImagePath_${i}`);
+      const leaderImagePath = await processImageUpload(formData, 'about', `leadershipImageFile_${i}`, `leadershipImagePath_${i}`);
       // Always update imagePath — null means the user cleared it (remove image), so store ''
       leadershipParsed[i].imagePath = leaderImagePath ?? '';
     }
     const leadership = JSON.stringify(leadershipParsed);
 
-    let storyImagePath = await processImageUpload(formData, 'storyImageFile', 'storyImagePath');
+    let storyImagePath = await processImageUpload(formData, 'about', 'storyImageFile', 'storyImagePath');
     if (!storyImagePath) {
       storyImagePath = '';
     }

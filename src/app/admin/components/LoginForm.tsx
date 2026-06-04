@@ -13,7 +13,6 @@ export default function LoginForm() {
   const [step, setStep] = useState<'LOGIN' | 'SETUP_2FA' | 'VERIFY_2FA'>('LOGIN');
   const [tempToken, setTempToken] = useState('');
   const [qrCodeData, setQrCodeData] = useState('');
-  const [tempSecret, setTempSecret] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
 
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,7 +30,6 @@ export default function LoginForm() {
       } else if (result.setup2FA) {
         setTempToken(result.tempToken!);
         setQrCodeData(result.qrCode!);
-        setTempSecret(result.tempSecret!);
         setStep('SETUP_2FA');
         setLoading(false);
       } else if (result.requires2FA) {
@@ -56,7 +54,7 @@ export default function LoginForm() {
     try {
       let result;
       if (step === 'SETUP_2FA') {
-        result = await setup2FA(tempToken, tempSecret, twoFactorCode);
+        result = await setup2FA(tempToken, twoFactorCode);
       } else {
         result = await verify2FALogin(tempToken, twoFactorCode);
       }

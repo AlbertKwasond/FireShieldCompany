@@ -67,12 +67,15 @@ model User {
   email     String   @unique
   password  String
   role      String   @default("Viewer")
-  status                   String   @default("Active")
-  avatar                   String   @default("")
-  twoFactorSecretEncrypted String?
-  activityLogs             ActivityLog[]
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  status                       String   @default("Active")
+  avatar                       String   @default("")
+  twoFactorSecretEncrypted     String?
+  // Temporary fields used during 2FA setup — never stored in the JWT
+  twoFactorPendingSecret       String?
+  twoFactorPendingExpiry       DateTime?
+  activityLogs                 ActivityLog[]
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
 }
 
 model Settings {

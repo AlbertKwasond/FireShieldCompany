@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/session';
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  const isProtectedRoute = path.startsWith('/admin') && path !== '/admin/login';
-  const isLoginRoute = path === '/admin/login';
+  const normalizedPath = path.toLowerCase();
+  const isAdminRoute = normalizedPath.startsWith('/admin');
+  const isProtectedRoute = isAdminRoute && normalizedPath !== '/admin/login';
+  const isLoginRoute = normalizedPath === '/admin/login';
 
   const cookie = req.cookies.get('session')?.value;
   const session = await decrypt(cookie || '');
@@ -19,23 +21,21 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/admin', req.nextUrl));
   }
 
-  // Maintenance Mode Check
-  // We only check for public routes. We skip checking for /admin, /api, /_next, /favicon.ico, /maintenance, etc.
-  const isPublicRoute = !path.startsWith('/admin') && 
-                        !path.startsWith('/api') && 
-                        !path.startsWith('/_next') && 
-                        !path.startsWith('/maintenance') &&
-                        !path.startsWith('/images') &&
-                        path !== '/favicon.ico';
+  // Maintenance Mode Check — only for public-facing pages, never for admin/api/assets
+  const isPublicRoute =
+    !isAdminRoute &&
+    !normalizedPath.startsWith('/api') &&
+    !normalizedPath.startsWith('/_next') &&
+    !normalizedPath.startsWith('/maintenance') &&
+    !normalizedPath.startsWith('/images') &&
+    normalizedPath !== '/favicon.ico';
 
   if (isPublicRoute) {
     try {
       const url = new URL('/api/settings/maintenance', req.url);
-      // Fetch with no-store to avoid stale data if we don't have tags set up,
-      // but revalidate: 60 might be safer for performance.
       const res = await fetch(url.toString(), {
         next: { tags: ['settings'] },
-        cache: 'no-store'
+        cache: 'no-store',
       });
       if (res.ok) {
         const { maintenanceMode } = await res.json();
@@ -44,7 +44,7 @@ export async function middleware(req: NextRequest) {
         }
       }
     } catch (e) {
-      console.error("Middleware fetch maintenance mode error:", e);
+      console.error('Proxy fetch maintenance mode error:', e);
     }
   }
 
@@ -52,15 +52,15 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  /*
+   * Match /admin routes for auth checks, and all public pages for maintenance
+   * mode checks. Excludes _next/static, _next/image, favicon, and images.
+   *
+   * NOTE: Next.js Server Actions bypass this proxy entirely. The verifySession()
+   * call inside each Server Action is the true authentication gate.
+   */
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images (public images)
-     */
+    '/admin/:path*',
     '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
   ],
 };

@@ -1,9 +1,16 @@
 import crypto from 'crypto';
 
-// The secret key for encryption. 
-// We use scryptSync to ensure it's exactly 32 bytes (256 bits) long, regardless of the JWT_SECRET length.
-const secretKey = process.env.JWT_SECRET || 'default_secret_key_for_development_only';
-const ENCRYPTION_KEY = crypto.scryptSync(secretKey, 'salt', 32); 
+// The secret key for encryption.
+// We use scryptSync to ensure it's exactly 32 bytes (256 bits) long, regardless of the key length.
+// SECURITY: We never fall back to a default — a missing key is a configuration error that must be fixed.
+const secretKey = process.env.ENCRYPTION_KEY ?? process.env.JWT_SECRET;
+if (!secretKey) {
+  throw new Error(
+    'FATAL: Neither ENCRYPTION_KEY nor JWT_SECRET is set. ' +
+    'The application cannot start without a secure encryption key.'
+  );
+}
+const ENCRYPTION_KEY = crypto.scryptSync(secretKey, 'fireshield-enc-salt', 32);
 
 const ALGORITHM = 'aes-256-gcm';
 

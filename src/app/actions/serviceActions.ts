@@ -3,8 +3,8 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { verifySession } from '@/lib/session';
+import { processImageUpload } from '@/lib/upload';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -14,35 +14,6 @@ function validateRequired(value: FormDataEntryValue | null, fieldName: string): 
   return str;
 }
 
-/**
- * If a real image file was uploaded, save it and return its public path.
- * If no file was uploaded, fall back to the hidden `imagePath` field (existing path).
- * Never returns an empty string — returns null if truly nothing is available.
- */
-async function processImageUpload(formData: FormData): Promise<string | null> {
-  const imageFile = formData.get('imageFile') as File | null;
-
-  if (imageFile && imageFile.size > 0) {
-    const bytes = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const filename = `${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '-')}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'images', 'services');
-
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    await fs.writeFile(path.join(uploadDir, filename), buffer);
-    return `/images/services/${filename}`;
-  }
-
-  // Fall back to whatever path was already stored (sent as hidden field)
-  const existingPath = (formData.get('imagePath') as string | null)?.trim() ?? '';
-  return existingPath || null;
-}
 
 // ─── Read ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +39,9 @@ export async function getService(id: string) {
 // ─── Create ──────────────────────────────────────────────────────────────────
 
 export async function createService(formData: FormData) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+
   // ── Validate & sanitise ──
   let title: string, description: string, icon: string;
   try {
@@ -86,7 +60,7 @@ export async function createService(formData: FormData) {
   const orderRaw = (formData.get('order') as string | null) ?? '0';
   const order = Math.max(0, parseInt(orderRaw, 10) || 0);
 
-  const imagePath = (await processImageUpload(formData)) ?? '';
+  const imagePath = (await processImageUpload(formData, 'services')) ?? '';
 
   // ── Persist ──
   await prisma.service.create({
@@ -101,6 +75,9 @@ export async function createService(formData: FormData) {
 // ─── Update ──────────────────────────────────────────────────────────────────
 
 export async function updateService(id: string, formData: FormData) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+
   if (!id) throw new Error('Service ID is required.');
 
   // ── Validate & sanitise ──
@@ -122,7 +99,7 @@ export async function updateService(id: string, formData: FormData) {
   const order = Math.max(0, parseInt(orderRaw, 10) || 0);
 
   // Preserve existing image unless a new one was uploaded
-  const newImagePath = await processImageUpload(formData);
+  const newImagePath = await processImageUpload(formData, 'services');
   // If even the fallback was empty, keep whatever is currently in DB
   let imagePath = newImagePath;
   if (!imagePath) {
@@ -144,6 +121,9 @@ export async function updateService(id: string, formData: FormData) {
 // ─── Delete ──────────────────────────────────────────────────────────────────
 
 export async function deleteService(id: string) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+
   if (!id) return { success: false, error: 'Invalid service ID.' };
   try {
     await prisma.service.delete({ where: { id } });

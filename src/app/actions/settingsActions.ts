@@ -3,8 +3,33 @@
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { verifySession } from '@/lib/session';
 
+/**
+ * Public read — no auth required.
+ * Returns only the fields needed by public-facing pages and the login flow.
+ * FIX #5: Keeps sensitive admin config fields private.
+ */
+export async function getPublicSettings() {
+  try {
+    const settings = await prisma.settings.findUnique({
+      where: { id: 'singleton' },
+      select: { siteName: true, maintenanceMode: true },
+    });
+    return settings ?? { siteName: 'Fire Shield Company Limited', maintenanceMode: false };
+  } catch (error) {
+    console.error('Error fetching public settings:', error);
+    return { siteName: 'Fire Shield Company Limited', maintenanceMode: false };
+  }
+}
+
+/**
+ * Admin read — session required.
+ * Returns the full settings object for the admin dashboard.
+ */
 export async function getSettings() {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
   try {
     let settings = await prisma.settings.findUnique({
       where: { id: 'singleton' },
@@ -32,6 +57,8 @@ export async function getSettings() {
 }
 
 export async function updateSettings(data: Partial<Prisma.SettingsUpdateInput>) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
   try {
     const settings = await prisma.settings.update({
       where: { id: 'singleton' },
@@ -49,6 +76,8 @@ export async function updateSettings(data: Partial<Prisma.SettingsUpdateInput>) 
 }
 
 export async function getSecuritySettings() {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
   try {
     let settings = await prisma.securitySettings.findUnique({
       where: { id: 'singleton' },
@@ -73,6 +102,8 @@ export async function getSecuritySettings() {
 }
 
 export async function updateSecuritySettings(data: Partial<Prisma.SecuritySettingsUpdateInput>) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
   try {
     const settings = await prisma.securitySettings.update({
       where: { id: 'singleton' },
@@ -87,6 +118,8 @@ export async function updateSecuritySettings(data: Partial<Prisma.SecuritySettin
 }
 
 export async function getNotificationSettings() {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
   try {
     let settings = await prisma.notificationSettings.findUnique({
       where: { id: 'singleton' },
@@ -110,6 +143,8 @@ export async function getNotificationSettings() {
 }
 
 export async function updateNotificationSettings(data: Partial<Prisma.NotificationSettingsUpdateInput>) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
   try {
     const settings = await prisma.notificationSettings.update({
       where: { id: 'singleton' },

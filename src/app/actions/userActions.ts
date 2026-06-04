@@ -3,9 +3,9 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { promises as fs } from 'fs';
-import path from 'path';
 import bcrypt from 'bcryptjs';
+import { verifySession } from '@/lib/session';
+import { processImageUpload } from '@/lib/upload';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -15,41 +15,27 @@ function validateRequired(value: FormDataEntryValue | null, fieldName: string): 
   return str;
 }
 
-/**
- * If a real image file was uploaded, save it and return its public path.
- * If no file was uploaded, fall back to the hidden `avatarPath` field (existing path).
- * Never returns an empty string — returns null if truly nothing is available.
- */
-async function processAvatarUpload(formData: FormData): Promise<string | null> {
-  const avatarFile = formData.get('avatarFile') as File | null;
-
-  if (avatarFile && avatarFile.size > 0) {
-    const bytes = await avatarFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const filename = `${Date.now()}-${avatarFile.name.replace(/[^a-zA-Z0-9.-]/g, '-')}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'images', 'users');
-
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    await fs.writeFile(path.join(uploadDir, filename), buffer);
-    return `/images/users/${filename}`;
-  }
-
-  // Fall back to whatever path was already stored (sent as hidden field)
-  const existingPath = (formData.get('avatarPath') as string | null)?.trim() ?? '';
-  return existingPath || null;
-}
 
 // ─── Read ────────────────────────────────────────────────────────────────────
 
 export async function getUsers() {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+
   try {
-    return await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+    return await prisma.user.findMany({ 
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
   } catch (error) {
     console.error('[getUsers]', error);
     return [];
@@ -57,9 +43,24 @@ export async function getUsers() {
 }
 
 export async function getUser(id: string) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+
   if (!id) return null;
   try {
-    return await prisma.user.findUnique({ where: { id } });
+    return await prisma.user.findUnique({ 
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
   } catch (error) {
     console.error('[getUser]', error);
     return null;
@@ -69,6 +70,11 @@ export async function getUser(id: string) {
 // ─── Create ──────────────────────────────────────────────────────────────────
 
 export async function createUser(formData: FormData) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+  // FIX #8: Only Admins may create users.
+  if (session.role !== 'Admin') throw new Error('Forbidden: insufficient privileges.');
+
   // ── Validate & sanitise ──
   let name: string, email: string, passwordRaw: string, role: string, status: string;
   try {
@@ -81,7 +87,8 @@ export async function createUser(formData: FormData) {
     throw new Error((err as Error).message);
   }
 
-  const avatar = (await processAvatarUpload(formData)) ?? '';
+  // FIX #2: Use the secure shared upload helper (validates MIME, magic bytes, size).
+  const avatar = (await processImageUpload(formData, 'users', 'avatarFile', 'avatarPath')) ?? '';
 
   // Hash password
   const salt = await bcrypt.genSalt(10);
@@ -104,6 +111,11 @@ export async function createUser(formData: FormData) {
 // ─── Update ──────────────────────────────────────────────────────────────────
 
 export async function updateUser(id: string, formData: FormData) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+  // FIX #8: Only Admins may update users.
+  if (session.role !== 'Admin') throw new Error('Forbidden: insufficient privileges.');
+
   if (!id) throw new Error('User ID is required.');
 
   // ── Validate & sanitise ──
@@ -118,7 +130,7 @@ export async function updateUser(id: string, formData: FormData) {
   }
 
   const passwordRaw = (formData.get('password') as string | null)?.trim();
-  let updateData: any = { name, email, role, status };
+  const updateData: Record<string, unknown> = { name, email, role, status };
 
   if (passwordRaw) {
     const salt = await bcrypt.genSalt(10);
@@ -126,7 +138,8 @@ export async function updateUser(id: string, formData: FormData) {
   }
 
   // Preserve existing avatar unless a new one was uploaded
-  const newAvatarPath = await processAvatarUpload(formData);
+  // FIX #2: Use the secure shared upload helper.
+  const newAvatarPath = await processImageUpload(formData, 'users', 'avatarFile', 'avatarPath');
   // If even the fallback was empty, keep whatever is currently in DB
   let avatar = newAvatarPath;
   if (!avatar) {
@@ -153,6 +166,15 @@ export async function updateUser(id: string, formData: FormData) {
 // ─── Delete ──────────────────────────────────────────────────────────────────
 
 export async function deleteUser(id: string) {
+  const session = await verifySession();
+  if (!session) throw new Error('Unauthorized');
+  // FIX #8: Only Admins may delete users.
+  if (session.role !== 'Admin') throw new Error('Forbidden: insufficient privileges.');
+  // FIX #8: Prevent self-deletion.
+  if (id === session.userId) {
+    return { success: false, error: 'You cannot delete your own account.' };
+  }
+
   if (!id) return { success: false, error: 'Invalid user ID.' };
   try {
     await prisma.user.delete({ where: { id } });
