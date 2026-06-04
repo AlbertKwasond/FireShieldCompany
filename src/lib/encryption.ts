@@ -1,22 +1,21 @@
 import crypto from 'crypto';
 
-// The secret key for encryption.
-// We use scryptSync to ensure it's exactly 32 bytes (256 bits) long, regardless of the key length.
-// SECURITY: We never fall back to a default — a missing key is a configuration error that must be fixed.
-const secretKey = process.env.ENCRYPTION_KEY ?? process.env.JWT_SECRET;
-if (!secretKey) {
-  throw new Error(
-    'FATAL: Neither ENCRYPTION_KEY nor JWT_SECRET is set. ' +
-    'The application cannot start without a secure encryption key.'
-  );
+function getEncryptionKey() {
+  const secretKey = process.env.ENCRYPTION_KEY ?? process.env.JWT_SECRET;
+  if (!secretKey) {
+    throw new Error(
+      'FATAL: Neither ENCRYPTION_KEY nor JWT_SECRET is set. ' +
+      'The application cannot start without a secure encryption key.'
+    );
+  }
+  return crypto.scryptSync(secretKey, 'fireshield-enc-salt', 32);
 }
-const ENCRYPTION_KEY = crypto.scryptSync(secretKey, 'fireshield-enc-salt', 32);
 
 const ALGORITHM = 'aes-256-gcm';
 
 export function encrypt(text: string): string {
   const iv = crypto.randomBytes(12); // 96-bit IV is standard for GCM
-  const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, getEncryptionKey(), iv);
   
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -38,7 +37,7 @@ export function decrypt(encryptedText: string): string | null {
     const encrypted = parts[1];
     const authTag = Buffer.from(parts[2], 'hex');
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+    const decipher = crypto.createDecipheriv(ALGORITHM, getEncryptionKey(), iv);
     decipher.setAuthTag(authTag);
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');

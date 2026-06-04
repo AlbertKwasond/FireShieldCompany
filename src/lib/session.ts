@@ -1,15 +1,16 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-// SECURITY: We never fall back to a default — a missing secret is a configuration error that must be fixed.
-const secretKey = process.env.JWT_SECRET;
-if (!secretKey) {
-  throw new Error(
-    'FATAL: JWT_SECRET environment variable is not set. ' +
-    'The application cannot start without a secure session key.'
-  );
+function getJwtKey() {
+  const secretKey = process.env.JWT_SECRET;
+  if (!secretKey) {
+    throw new Error(
+      'FATAL: JWT_SECRET environment variable is not set. ' +
+      'The application cannot start without a secure session key.'
+    );
+  }
+  return new TextEncoder().encode(secretKey);
 }
-const key = new TextEncoder().encode(secretKey);
 
 export interface SessionPayload {
   userId: string;
@@ -24,12 +25,12 @@ export async function encrypt(payload: SessionPayload, expiresIn: string = '24h'
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiresIn)
-    .sign(key);
+    .sign(getJwtKey());
 }
 
 export async function decrypt(input: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(input, key, {
+    const { payload } = await jwtVerify(input, getJwtKey(), {
       algorithms: ['HS256'],
     });
     return payload as unknown as SessionPayload;
