@@ -3,6 +3,7 @@ import { getPublicSettings } from '@/app/actions/settingsActions';
 
 // This must run on Node.js runtime, not Edge, because it uses Prisma
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
