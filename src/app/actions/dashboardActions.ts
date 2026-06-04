@@ -46,7 +46,7 @@ export async function getDashboardOverview() {
           lt: nextDay,
         }
       }
-    }).then(count => ({
+    }).then((count: number) => ({
       name: d.toLocaleDateString('en-US', { weekday: 'short' }),
       activity: count,
     }));
