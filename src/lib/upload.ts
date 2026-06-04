@@ -1,5 +1,4 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { put } from '@vercel/blob';
 import crypto from 'crypto';
 
 // Allowed image MIME types (both declared and detected via magic bytes)
@@ -67,8 +66,8 @@ function validateImageFile(file: File, buffer: Buffer): { ext: string } {
 }
 
 /**
- * Saves a validated image file to `public/images/<subDir>/` and returns
- * its public URL path (e.g. `/images/users/abc123.jpg`).
+ * Saves a validated image file to Vercel Blob and returns
+ * its public URL path.
  *
  * Uses a cryptographically random UUID filename — never the original filename —
  * which prevents path traversal attacks and filename collisions.
@@ -77,17 +76,19 @@ export async function saveImageFile(file: File, subDir: string): Promise<string>
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  // Validate before touching the filesystem
+  // Validate before uploading
   const { ext } = validateImageFile(file, buffer);
 
   // Safe filename: timestamp + UUID — no user-controlled characters
   const filename = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
-  const uploadDir = path.join(process.cwd(), 'public', 'images', subDir);
+  const blobPath = `images/${subDir}/${filename}`;
 
-  await fs.mkdir(uploadDir, { recursive: true });
-  await fs.writeFile(path.join(uploadDir, filename), buffer);
+  const blob = await put(blobPath, buffer, {
+    access: 'public',
+    contentType: file.type,
+  });
 
-  return `/images/${subDir}/${filename}`;
+  return blob.url;
 }
 
 /**
