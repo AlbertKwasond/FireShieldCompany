@@ -1,5 +1,7 @@
 import { put } from '@vercel/blob';
 import crypto from 'crypto';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 // Allowed image MIME types (both declared and detected via magic bytes)
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
@@ -66,11 +68,8 @@ function validateImageFile(file: File, buffer: Buffer): { ext: string } {
 }
 
 /**
- * Saves a validated image file to Vercel Blob and returns
- * its public URL path.
- *
- * Uses a cryptographically random UUID filename — never the original filename —
- * which prevents path traversal attacks and filename collisions.
+ * Saves a validated image file to Vercel Blob (if configured) or Local Disk (if not).
+ * Returns its public URL path.
  */
 export async function saveImageFile(file: File, subDir: string): Promise<string> {
   const bytes = await file.arrayBuffer();
@@ -81,14 +80,23 @@ export async function saveImageFile(file: File, subDir: string): Promise<string>
 
   // Safe filename: timestamp + UUID — no user-controlled characters
   const filename = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
-  const blobPath = `images/${subDir}/${filename}`;
 
-  const blob = await put(blobPath, buffer, {
-    access: 'public',
-    contentType: file.type,
-  });
+  // If Vercel Blob token exists, use Blob Storage (Production)
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blobPath = `images/${subDir}/${filename}`;
+    const blob = await put(blobPath, buffer, {
+      access: 'public',
+      contentType: file.type,
+    });
+    return blob.url;
+  }
 
-  return blob.url;
+  // Fallback to local storage (Development)
+  const uploadDir = path.join(process.cwd(), 'public', 'images', subDir);
+  await fs.mkdir(uploadDir, { recursive: true });
+  await fs.writeFile(path.join(uploadDir, filename), buffer);
+  
+  return `/images/${subDir}/${filename}`;
 }
 
 /**
