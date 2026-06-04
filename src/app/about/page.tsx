@@ -37,7 +37,7 @@ export default async function About() {
       <section className={styles.hero}>
         <div className="container">
           <h1 className="heading-xl animate-fade-in-up">
-            {content.heroTitle.split(' ').map((word, i, arr) => 
+            {content.heroTitle.split(' ').map((word: string, i: number, arr: string[]) => 
               i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
             )}
           </h1>
@@ -53,7 +53,7 @@ export default async function About() {
           <div className="grid grid-2 items-center">
             <div>
               <h2 className="heading-lg" style={{ color: 'var(--black-bg)' }}>
-                {content.storyTitle.split(' ').map((word, i, arr) => 
+                {content.storyTitle.split(' ').map((word: string, i: number, arr: string[]) => 
                   i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
                 )}
               </h2>

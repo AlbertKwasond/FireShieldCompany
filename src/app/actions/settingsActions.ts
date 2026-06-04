@@ -14,12 +14,12 @@ export async function getPublicSettings() {
   try {
     const settings = await prisma.settings.findUnique({
       where: { id: 'singleton' },
-      select: { siteName: true, maintenanceMode: true },
+      select: { siteName: true, maintenanceMode: true, contactEmail: true, phoneNumber: true, address: true },
     });
-    return settings ?? { siteName: 'Fire Shield Company Limited', maintenanceMode: false };
+    return settings ?? { siteName: 'Fire Shield Company Limited', maintenanceMode: false, contactEmail: null, phoneNumber: null, address: null };
   } catch (error) {
     console.error('Error fetching public settings:', error);
-    return { siteName: 'Fire Shield Company Limited', maintenanceMode: false };
+    return { siteName: 'Fire Shield Company Limited', maintenanceMode: false, contactEmail: null, phoneNumber: null, address: null };
   }
 }
 

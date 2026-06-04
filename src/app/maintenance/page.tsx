@@ -1,5 +1,5 @@
 import React from 'react';
-import { getSettings } from '@/app/actions/settingsActions';
+import { getPublicSettings } from '@/app/actions/settingsActions';
 import { ShieldAlert, Mail, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
@@ -9,7 +9,7 @@ export const metadata = {
 };
 
 export default async function MaintenancePage() {
-  const settings = await getSettings();
+  const settings = await getPublicSettings();
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
