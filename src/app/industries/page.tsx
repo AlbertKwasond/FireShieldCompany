@@ -1,16 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Factory, 
-  Landmark, 
-  Building2, 
-  Server, 
-  Plane, 
-  GraduationCap, 
-  Hospital, 
-  Shield 
-} from 'lucide-react';
+import * as Icons from 'lucide-react';
+import { getIndustries } from '@/app/actions/industryActions';
+import { Industry } from '@prisma/client';
 import styles from './Industries.module.css';
 
 export const metadata = {
@@ -18,57 +11,10 @@ export const metadata = {
   description: 'Fire Shield provides tailored fire safety, security, and engineering solutions across various industries including Mining, Finance, Government, and Data Centers.',
 };
 
-export default function IndustriesPage() {
-  const industries = [
-    {
-      title: 'Manufacturing',
-      icon: <Factory size={24} />,
-      image: '/images/industries/manufacturing.jpg',
-      description: 'Robust fire suppression and security systems designed for harsh industrial environments, ensuring continuous operation.',
-    },
-    {
-      title: 'Banking & Financial',
-      icon: <Landmark size={24} />,
-      image: '/images/industries/banking_financial.jpg',
-      description: 'Advanced access control, CCTV, and early-warning fire detection systems protecting sensitive assets.',
-    },
-    {
-      title: 'Government Offices',
-      icon: <Building2 size={24} />,
-      image: '/images/industries/government_access_control.jpg',
-      description: 'Comprehensive life safety and security infrastructure for public sector buildings and headquarters.',
-    },
-    {
-      title: 'Data Centers',
-      icon: <Server size={24} />,
-      image: '/images/industries/data_center_servers.jpg',
-      description: 'Mission-critical cooling, clean agent fire suppression, and environmental monitoring for zero-downtime environments.',
-    },
-    {
-      title: 'Healthcare',
-      icon: <Hospital size={24} />,
-      image: '/images/industries/healthcare_safety.jpg',
-      description: 'Specialized safety systems and secure access controls that protect patients, staff, and medical equipment.',
-    },
-    {
-      title: 'Education',
-      icon: <GraduationCap size={24} />,
-      image: '/images/industries/fire_alarm_edu.jpg',
-      description: 'Campus-wide security and fire alarm integration tailored to protect students and educational facilities.',
-    },
-    {
-      title: 'Aviation & Transport',
-      icon: <Plane size={24} />,
-      image: '/images/industries/aviation_security.jpg',
-      description: 'Large-scale fire engineering and surveillance for transit hubs, airport hangars, and logistics centers.',
-    },
-    {
-      title: 'High-Risk Facilities',
-      icon: <Shield size={24} />,
-      image: '/images/industries/high_risk_facilities.png',
-      description: 'Custom-engineered solutions for oil, gas, and chemical sites where absolute reliability is non-negotiable.',
-    }
-  ];
+export const revalidate = 0; // Ensure fresh data
+
+export default async function IndustriesPage() {
+  const industries = await getIndustries();
 
   return (
     <div className={styles.container}>
@@ -83,31 +29,47 @@ export default function IndustriesPage() {
 
       <section className={styles.gridSection}>
         <div className={`container ${styles.gridContainer}`}>
-          {industries.map((industry, index) => (
-            <div 
-              key={index} 
-              className={`${styles.card} animate-fade-in-up`}
-              style={{ animationDelay: `${(index % 4) * 100 + 100}ms` }}
-            >
-              <div className={styles.imageBanner}>
-                <Image 
-                  src={industry.image} 
-                  alt={industry.title}
-                  fill
-                  className={styles.cardImage}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                />
-                <div className={styles.imageOverlay}></div>
-                <div className={styles.iconBadge}>
-                  {industry.icon}
+          {industries.length > 0 ? (
+            industries.map((industry: Industry, index: number) => {
+              const IconComponent = (Icons as any)[industry.icon] || Icons.HelpCircle;
+
+              return (
+                <div 
+                  key={industry.id} 
+                  className={`${styles.card} animate-fade-in-up`}
+                  style={{ animationDelay: `${(index % 4) * 100 + 100}ms` }}
+                >
+                  <div className={styles.imageBanner}>
+                    {industry.imagePath ? (
+                      <Image 
+                        src={industry.imagePath} 
+                        alt={industry.title}
+                        fill
+                        className={styles.cardImage}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <div className={styles.imagePlaceholder}>
+                        <IconComponent size={32} />
+                      </div>
+                    )}
+                    <div className={styles.imageOverlay}></div>
+                    <div className={styles.iconBadge}>
+                      <IconComponent size={24} />
+                    </div>
+                  </div>
+                  <div className={styles.cardContent}>
+                    <h3 className={styles.cardTitle}>{industry.title}</h3>
+                    <p className={styles.cardDescription}>{industry.description}</p>
+                  </div>
                 </div>
-              </div>
-              <div className={styles.cardContent}>
-                <h3 className={styles.cardTitle}>{industry.title}</h3>
-                <p className={styles.cardDescription}>{industry.description}</p>
-              </div>
+              );
+            })
+          ) : (
+            <div className="col-span-full text-center py-20">
+              <p className="text-gray-400 text-lg">New industries will be added soon.</p>
             </div>
-          ))}
+          )}
         </div>
       </section>
 

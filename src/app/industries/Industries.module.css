@@ -103,6 +103,17 @@
   background-color: var(--dark-gray);
 }
 
+/* Placeholder shown when no image is uploaded */
+.imagePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1e26 0%, #0d1117 100%);
+  color: rgba(255, 255, 255, 0.15);
+}
+
 .cardImage {
   object-fit: cover;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);

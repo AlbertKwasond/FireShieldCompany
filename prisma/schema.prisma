@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  icon        String
+  imagePath   String
+  features    String   // Stored as JSON string
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AboutContent {
+  id                String   @id @default("singleton")
+  heroTitle         String
+  heroDescription   String
+  storyTitle        String
+  storyDescription1 String
+  storyDescription2 String
+  storyImagePath    String   @default("")
+  mission           String
+  vision            String
+  timeline          String   @default("[]") // JSON string storing the timeline events
+  coreValues        String   @default("[]") // JSON string storing the core values
+  leadership        String   @default("[]") // JSON string storing leadership profiles
+  updatedAt         DateTime @updatedAt
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  description String
+  location    String
+  date        String
+  imagePath   String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Industry {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  icon        String
+  imagePath   String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("Viewer")
+  status                   String   @default("Active")
+  avatar                   String   @default("")
+  twoFactorSecretEncrypted String?
+  activityLogs             ActivityLog[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+model Settings {
+  id              String   @id @default("singleton")
+  siteName        String   @default("Fire Shield Company Limited")
+  contactEmail    String   @default("info@fireshieldghana.com")
+  phoneNumber     String?  @default("")
+  address         String?  @default("")
+  timezone        String   @default("GMT")
+  maintenanceMode Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+model SecuritySettings {
+  id                  String   @id @default("singleton")
+  passwordMinLength   Int      @default(8)
+  requireSpecialChar  Boolean  @default(true)
+  sessionTimeoutMins  Int      @default(60)
+  enable2FA           Boolean  @default(false)
+  updatedAt           DateTime @updatedAt
+}
+
+model NotificationSettings {
+  id                    String   @id @default("singleton")
+  emailNotifications    Boolean  @default(true)
+  securityAlerts        Boolean  @default(true)
+  systemNotifications   Boolean  @default(true)
+  notificationEmail     String?
+  updatedAt             DateTime @updatedAt
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entityType  String   // Service, Project, User, Settings, etc.
+  entityId    String   // ID of the affected entity
+  entityName  String   // Human-readable name (e.g. "Fire Safety Equipment")
+  userId      String   // ID of the user who performed the action
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metadata    String?  // JSON string for additional context
+  createdAt   DateTime @default(now())
+}
